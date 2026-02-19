@@ -1,0 +1,13 @@
+# Virtuelle Umgebung ignorieren
+venv/
+
+# IDE-Dateien ignorieren
+.idea/
+
+# Python Cache ignorieren
+__pycache__/
+*.pyc
+
+# Optionale Ignorierung von temporären Dateien
+*.log
+*.tmp
