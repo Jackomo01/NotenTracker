@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.use("Agg")
 import numpy as np
+import time
 
 st.set_page_config(
     page_title="NotenTracker",
@@ -17,6 +18,8 @@ if "df" not in st.session_state:
     st.session_state.df = pd.DataFrame(columns=["Jahr", "Schuljahr", "Fach", "Zeitpunkt", "Note"])
 if "save_msg" not in st.session_state:
     st.session_state.save_msg = None
+if "save_msg_time" not in st.session_state:
+    st.session_state.save_msg_time = None
 
 zeit_map = {"NSB1": 1, "HJ": 2, "NSB2": 3, "Z": 4}
 
@@ -33,6 +36,14 @@ def note_klasse(note):
     if note <= 4.0: return "note-yellow"
     return "note-red"
 
+def note_label(note):
+    if note < 1.5:   return "Sehr gut"
+    if note < 2.5:   return "Gut"
+    if note < 3.5:   return "Befriedigend"
+    if note < 4.5:   return "Ausreichend"
+    if note < 5.5:   return "Mangelhaft"
+    return "Ungenügend"
+
 def save_note(jahr, fach, zeitpunkt, note):
     schuljahr = schuljahr_berechnen(jahr, zeitpunkt)
     d = st.session_state.df
@@ -41,7 +52,6 @@ def save_note(jahr, fach, zeitpunkt, note):
         st.session_state.df.loc[exist.index, "Note"] = note
         return schuljahr, True
     new_row = pd.DataFrame([{"Jahr": jahr, "Schuljahr": schuljahr, "Fach": fach, "Zeitpunkt": zeitpunkt, "Note": note}])
-    # FIX 7: concat with copy=False to silence FutureWarning
     st.session_state.df = pd.concat(
         [st.session_state.df, new_row],
         ignore_index=True,
@@ -70,31 +80,58 @@ html, body, [class*="css"] { font-family: 'DM Mono', monospace; }
 h1, h2, h3 { font-family: 'Syne', sans-serif !important; }
 
 /* ── App background ── */
-.stApp {
-    background: linear-gradient(160deg, #0f0f11 0%, #13111a 60%, #0f0f11 100%);
+html, body, .stApp {
+    background: linear-gradient(160deg, #0f0f11 0%, #13111a 60%, #0f0f11 100%) !important;
+    background-color: #0f0f11 !important;
     color: #e8e4dc;
 }
 
-/* ── Sidebar ── */
+/* ── Header komplett dunkel ── */
+header[data-testid="stHeader"],
+div[data-testid="stToolbar"],
+div[data-testid="stDecoration"],
+div[data-testid="stStatusWidget"],
+.stApp > header {
+    background: #0f0f11 !important;
+    background-color: #0f0f11 !important;
+    box-shadow: none !important;
+    border-bottom: none !important;
+}
+
+/* ── Sidebar – fixe Breite, kein Resize, kein Overflow ── */
 section[data-testid="stSidebar"] {
     background: #14131a;
     border-right: 1px solid #26242e;
-    min-width: 280px !important;
-    max-width: 280px !important;
-    overflow: visible !important;
+    min-width: 320px !important;
+    max-width: 320px !important;
+    width: 320px !important;
 }
 section[data-testid="stSidebar"] > div {
     padding: 1.2rem 1.2rem 1.2rem 1.2rem !important;
+    overflow: visible !important;
 }
-
-/* FIX 3: Disable sidebar resize handle */
-div[data-testid="stSidebarResizeHandle"] {
+/* Kill all resize handles */
+div[data-testid="stSidebarResizer"],
+div[data-testid="stSidebarResizeHandle"],
+div[class*="ResizeHandle"],
+div[class*="resizeHandle"],
+div[role="separator"][aria-orientation="vertical"] {
     display: none !important;
+    pointer-events: none !important;
+    width: 0 !important;
+}
+section[data-testid="stSidebar"] * {
+    cursor: default !important;
+}
+section[data-testid="stSidebar"] label,
+section[data-testid="stSidebar"] a,
+section[data-testid="stSidebar"] button,
+section[data-testid="stSidebar"] .stRadio label {
+    cursor: pointer !important;
 }
 
-/* ── Radio nav: dots + labels, no pointer cursor on container ── */
+/* ── Radio nav ── */
 section[data-testid="stSidebar"] .stRadio > div { gap: 0.1rem !important; }
-section[data-testid="stSidebar"] .stRadio { cursor: default !important; }
 section[data-testid="stSidebar"] .stRadio label {
     display: flex !important;
     align-items: center !important;
@@ -103,7 +140,6 @@ section[data-testid="stSidebar"] .stRadio label {
     color: #9a96a8 !important;
     padding: 0.42rem 0.7rem !important;
     border-radius: 6px !important;
-    cursor: pointer !important;
     transition: color 0.15s, background 0.15s !important;
     width: 100% !important;
     margin: 0 !important;
@@ -117,58 +153,102 @@ section[data-testid="stSidebar"] .stRadio label:has(input:checked) {
     color: #c8f060 !important;
     background: rgba(200,240,96,0.07) !important;
 }
-/* Hide the "Menü" widget label text */
 section[data-testid="stSidebar"] .stRadio div[data-testid="stWidgetLabel"] { display: none !important; }
 
-/* Stats: push down with margin */
-.sidebar-stats { margin-top: 1.5rem; font-size: 13px; line-height: 2; }
-
-/* FIX 5: Speichern button – massive neon boss level */
-section[data-testid="stMain"] .stButton > button {
-    background: linear-gradient(135deg, #c8f060, #9cff00) !important;
-    color: #0a0f00 !important;
-    border: none !important;
-    border-radius: 18px !important;
-    font-family: 'Syne', sans-serif !important;
-    font-weight: 900 !important;
-    font-size: 22px !important;
-    padding: 1.4rem 2.4rem !important;
-    width: 100% !important;
-    letter-spacing: 0.1em !important;
-    transition: all 0.25s ease !important;
-    box-shadow: 0 0 35px rgba(200,240,96,0.6);
-}
-
-section[data-testid="stMain"] .stButton > button:hover {
-    transform: scale(1.08);
-    box-shadow:
-        0 0 70px rgba(200,240,96,0.9),
-        0 0 120px rgba(200,240,96,0.6);
-}
-
-section[data-testid="stMain"] .stButton > button:active {
-    transform: scale(0.97);
-}
-
-/* ── Delete ✕ button: small, lime-green, no neon ── */
-section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] .stButton > button {
-    background: transparent !important;
-    border: 1px solid #3a5e2a !important;
-    color: #80c860 !important;
-    font-size: 11px !important;
-    padding: 0.25rem 0.55rem !important;
-    width: auto !important;
+/* ── Global Focus Kill ── */
+*:focus,
+*:focus-visible,
+*:focus-within {
+    outline: none !important;
     box-shadow: none !important;
-    transform: none !important;
-    letter-spacing: 0 !important;
 }
-section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] .stButton > button:hover {
+
+/* ── TextInput ── */
+.stTextInput [data-baseweb="input"] {
+    background-color: #1e1d2a !important;
+    border: 1px solid #2e2c3e !important;
+    border-radius: 8px !important;
+    transition: border-color 0.15s ease !important;
+    box-shadow: none !important;
+}
+.stTextInput [data-baseweb="input"]:focus-within {
     border-color: #c8f060 !important;
-    color: #c8f060 !important;
-    background: rgba(200,240,96,0.06) !important;
-    transform: none !important;
     box-shadow: none !important;
 }
+.stTextInput input {
+    background-color: transparent !important;
+    border: none !important;
+    color: #e8e4dc !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+/* Invalid state: kein roter Ring */
+.stTextInput input:invalid,
+.stTextInput input:-webkit-autofill {
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+/* ── Selectbox – komplett neu, kein Weiß ── */
+[data-baseweb="select"] > div {
+    background-color: #1e1d2a !important;
+    border: 1px solid #2e2c3e !important;
+    border-radius: 8px !important;
+    color: #e8e4dc !important;
+    box-shadow: none !important;
+    transition: border-color 0.15s ease !important;
+}
+[data-baseweb="select"]:focus-within > div {
+    border-color: #c8f060 !important;
+    box-shadow: none !important;
+}
+[data-baseweb="select"] * {
+    color: #e8e4dc !important;
+    background-color: transparent !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+[data-baseweb="menu"] {
+    background-color: #1c1b28 !important;
+    border: 1px solid #32303c !important;
+    border-radius: 8px !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+}
+[data-baseweb="option"] {
+    background-color: #1c1b28 !important;
+    color: #ccc8d8 !important;
+    border-radius: 5px !important;
+    font-size: 13px !important;
+    transition: background 0.12s !important;
+}
+[data-baseweb="option"]:hover,
+[data-baseweb="option"][aria-selected="true"] {
+    background-color: rgba(200,240,96,0.09) !important;
+    color: #c8f060 !important;
+}
+
+/* Dropdown popup (listbox fallback) */
+div[data-baseweb="popover"] {
+    background-color: rgba(28, 26, 38, 0.97) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid #32303c !important;
+    border-radius: 8px !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important;
+}
+div[data-baseweb="popover"] * { background-color: transparent !important; color: #e8e4dc !important; }
+ul[role="listbox"] { background-color: transparent !important; padding: 0.3rem !important; }
+ul[role="listbox"] li {
+    background-color: transparent !important; color: #ccc8d8 !important;
+    border-radius: 5px !important; padding: 0.4rem 0.8rem !important;
+    font-size: 13px !important; transition: background 0.12s, color 0.12s !important;
+}
+ul[role="listbox"] li:hover { background-color: rgba(200,240,96,0.08) !important; color: #c8f060 !important; }
+ul[role="listbox"] li[aria-selected="true"] { background-color: rgba(200,240,96,0.1) !important; color: #c8f060 !important; }
+
+/* ── Hide "Press Enter" hint ── */
+[data-testid="InputInstructions"] { display: none !important; }
 
 /* ── Metric cards ── */
 .metric-card {
@@ -206,81 +286,55 @@ section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] .stButton > b
 .warning-box { background: #221a0e; border: 1px solid #5e3e14; border-radius: 7px; padding: 0.65rem 1rem; color: #d4945a; font-size: 13px; margin: 0.5rem 0; }
 .info-strip { background: rgba(26,28,38,0.8); border-left: 3px solid #4a6ea8; border-radius: 0 7px 7px 0; padding: 0.65rem 1rem; color: #9aacca; font-size: 12px; margin-bottom: 1rem; line-height: 1.6; }
 
-/* ───────── CLEAN FOCUS SYSTEM ───────── */
+/* ── Speichern Button – Hero Level ── */
+div.stButton > button {
+    background: linear-gradient(135deg, #c8f060, #9cff00) !important;
+    color: #0a0f00 !important;
+    border: none !important;
+    border-radius: 18px !important;
+    font-family: 'Syne', sans-serif !important;
+    font-weight: 900 !important;
+    font-size: 22px !important;
+    padding: 1.4rem 2.4rem !important;
+    width: 100% !important;
+    letter-spacing: 0.1em !important;
+    transition: all 0.25s ease !important;
+    box-shadow: 0 0 35px rgba(200,240,96,0.55), 0 4px 24px rgba(0,0,0,0.4) !important;
+    cursor: pointer !important;
+}
+div.stButton > button:hover {
+    transform: scale(1.04) translateY(-2px);
+    box-shadow:
+        0 0 70px rgba(200,240,96,0.9),
+        0 0 120px rgba(200,240,96,0.5),
+        0 8px 32px rgba(0,0,0,0.5) !important;
+}
+div.stButton > button:active {
+    transform: scale(0.97) translateY(0);
+    box-shadow: 0 0 20px rgba(200,240,96,0.4) !important;
+}
 
-/* FIX 1: Kill absolutely everything – single unified block, no conflicts */
-*:focus,
-*:focus-visible,
-*:focus-within {
-    outline: none !important;
+/* ── Delete ✕ button: override hero ── */
+section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] .stButton > button {
+    background: transparent !important;
+    border: 1px solid #3a5e2a !important;
+    color: #80c860 !important;
+    font-size: 12px !important;
+    padding: 0.25rem 0.55rem !important;
+    width: auto !important;
+    box-shadow: none !important;
+    transform: none !important;
+    letter-spacing: 0 !important;
+    font-weight: 500 !important;
+    border-radius: 6px !important;
+}
+section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] .stButton > button:hover {
+    border-color: #c8f060 !important;
+    color: #c8f060 !important;
+    background: rgba(200,240,96,0.06) !important;
+    transform: none !important;
     box-shadow: none !important;
 }
-
-/* Inputs unified */
-.stTextInput input,
-.stNumberInput input,
-.stSelectbox div[data-baseweb="select"] > div {
-    background-color: #1e1d2a !important;
-    border: 1px solid #2e2c3e !important;
-    border-radius: 8px !important;
-    transition: border 0.15s ease !important;
-}
-
-/* Focus = subtle highlight, no glow, no outline */
-.stTextInput input:focus,
-.stNumberInput input:focus,
-.stSelectbox div[data-baseweb="select"] > div:focus-within {
-    border: 1px solid #c8f060 !important;
-    box-shadow: none !important;
-    outline: none !important;
-}
-
-/* Kill BaseWeb inner weird corners */
-div[data-baseweb="select"] * {
-    box-shadow: none !important;
-    outline: none !important;
-}
-
-/* ── ALL inputs: color ── */
-.stTextInput [data-baseweb="input"],
-.stTextInput > div > div > input,
-.stNumberInput [data-baseweb="input"],
-.stNumberInput > div > div > input,
-.stSelectbox [data-baseweb="select"] > div,
-.stSelectbox > div > div {
-    background-color: #1e1d2a !important;
-    border-color: #2e2c3e !important;
-    color: #e8e4dc !important;
-    outline: none !important;
-}
-
-.stNumberInput button {
-    background-color: #1e1d2a !important;
-    border-color: #2e2c3e !important;
-    color: #9a96a8 !important;
-}
-
-/* ── Dropdown popup ── */
-div[data-baseweb="popover"] {
-    background-color: rgba(28, 26, 38, 0.97) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    border: 1px solid #32303c !important;
-    border-radius: 8px !important;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important;
-}
-div[data-baseweb="popover"] * { background-color: transparent !important; color: #e8e4dc !important; }
-ul[role="listbox"] { background-color: transparent !important; padding: 0.3rem !important; }
-ul[role="listbox"] li {
-    background-color: transparent !important; color: #ccc8d8 !important;
-    border-radius: 5px !important; padding: 0.4rem 0.8rem !important;
-    font-size: 13px !important; transition: background 0.12s, color 0.12s !important;
-}
-ul[role="listbox"] li:hover { background-color: rgba(200,240,96,0.08) !important; color: #c8f060 !important; }
-ul[role="listbox"] li[aria-selected="true"] { background-color: rgba(200,240,96,0.1) !important; color: #c8f060 !important; }
-
-/* ── Hide "Press Enter" hint ── */
-[data-testid="InputInstructions"] { display: none !important; }
 
 /* ── Tabs ── */
 .stTabs [data-baseweb="tab"] { background: transparent !important; color: #6b6780 !important; font-family: 'DM Mono', monospace; font-size: 12px; transition: color 0.15s; }
@@ -289,36 +343,13 @@ ul[role="listbox"] li[aria-selected="true"] { background-color: rgba(200,240,96,
 .stTabs [data-baseweb="tab-list"] { border-bottom-color: #2a2830 !important; }
 
 /* ── DataFrame Dark Styling ── */
-div[data-testid="stDataFrame"] table {
-    background-color: #1c1b22 !important;
-    color: #e8e4dc !important;
-}
-div[data-testid="stDataFrame"] th {
-    background-color: #23212c !important;
-    color: #c8f060 !important;
-    border-bottom: 1px solid #2e2c38 !important;
-}
-div[data-testid="stDataFrame"] td {
-    background-color: #1c1b22 !important;
-    border-bottom: 1px solid #2a2830 !important;
-}
-div[data-testid="stDataFrame"] tr:hover td {
-    background-color: rgba(200,240,96,0.05) !important;
-}
+div[data-testid="stDataFrame"] table { background-color: #1c1b22 !important; color: #e8e4dc !important; }
+div[data-testid="stDataFrame"] th { background-color: #23212c !important; color: #c8f060 !important; border-bottom: 1px solid #2e2c38 !important; }
+div[data-testid="stDataFrame"] td { background-color: #1c1b22 !important; border-bottom: 1px solid #2a2830 !important; }
+div[data-testid="stDataFrame"] tr:hover td { background-color: rgba(200,240,96,0.05) !important; }
 
 /* ── Slider ── */
 .stSlider [role="slider"] { background-color: #c8f060 !important; border-color: #c8f060 !important; }
-
-.stNumberInput input {
-    background-color: #1e1d2a !important;
-    color: #e8e4dc !important;
-    border: 1px solid #2e2c3e !important;
-}
-
-/* FIX 6: Header dark – use background not background-color */
-header[data-testid="stHeader"] {
-    background: #0f0f11 !important;
-}
 
 hr { border-color: #2a2830; }
 </style>
@@ -326,23 +357,23 @@ hr { border-color: #2a2830; }
 
 # ─── SIDEBAR ───
 with st.sidebar:
-    # FIX 4: Logo not clipped – use white-space:normal and overflow:visible
+    # Logo – overflow visible, kein Clipping
     st.markdown("""
     <div style="
-    font-family:'Syne',sans-serif;
-    font-size:1.6rem;
-    font-weight:800;
-    background:linear-gradient(135deg,#c8f060,#80e0a0);
-    -webkit-background-clip:text;
-    -webkit-text-fill-color:transparent;
-    background-clip:text;
-    padding:0.6rem 0 1.4rem;
-    letter-spacing:-0.02em;
-    white-space:normal;
-    overflow:visible;
-    ">
-    NotenTracker
-    </div>
+        font-family:'Syne',sans-serif;
+        font-size:1.6rem;
+        font-weight:800;
+        background:linear-gradient(135deg,#c8f060,#80e0a0);
+        -webkit-background-clip:text;
+        -webkit-text-fill-color:transparent;
+        background-clip:text;
+        padding:0.6rem 0 1.4rem;
+        letter-spacing:-0.02em;
+        white-space:nowrap;
+        overflow:visible;
+        width:100%;
+        display:block;
+    ">NotenTracker</div>
     """, unsafe_allow_html=True)
 
     nav = st.radio(
@@ -396,43 +427,56 @@ elif nav == "Note hinzufügen":
 
     msg_placeholder = st.empty()
 
-    # FIX 2: No threading, no sleep, no crash – show message directly, clear on next rerun
-    if st.session_state.save_msg:
-        msg_placeholder.markdown(
-            f'<div class="success-box">{st.session_state.save_msg}</div>',
-            unsafe_allow_html=True
-        )
-        st.session_state.save_msg = None
+    # Timer-System – Timestamp-basiert, kein Thread, kein Sleep
+    if st.session_state.save_msg and st.session_state.save_msg_time:
+        elapsed = time.time() - st.session_state.save_msg_time
+        if elapsed < 3.0:
+            msg_placeholder.markdown(
+                f'<div class="success-box">{st.session_state.save_msg}</div>',
+                unsafe_allow_html=True
+            )
+        else:
+            st.session_state.save_msg = None
+            st.session_state.save_msg_time = None
 
     col_form, col_note = st.columns([3, 2])
     with col_form:
         r1, r2 = st.columns(2)
         with r1:
-            jahr = st.number_input("Jahr", min_value=2000, max_value=2100, value=2025, step=1)
+            # Jahr als TextInput – kein BaseWeb NumberInput, kein roter Ring, kein Plus/Minus
+            jahr_raw = st.text_input("Jahr", value="2025", max_chars=4)
         with r2:
             zeitpunkt = st.selectbox("Zeitpunkt", ["NSB1", "HJ", "NSB2", "Z"])
+
         fach = st.text_input("Fach", placeholder="z.B. Deutsch, Mathematik …").strip().capitalize()
         st.markdown("<div style='margin:0.4rem 0 0.1rem;font-size:13px;color:#7a7686'>Note</div>", unsafe_allow_html=True)
         note = st.slider("_s", min_value=1.0, max_value=6.0, value=3.0, step=0.01, format="%.2f", label_visibility="collapsed")
-        st.markdown("<div style='height:0.8rem'></div>", unsafe_allow_html=True)
-        _, btn, _ = st.columns([1, 2, 1])
-        with btn:
-            if st.button("Speichern", key="save_btn"):
-                if not fach:
-                    st.markdown('<div class="warning-box">Bitte ein Fach eingeben.</div>', unsafe_allow_html=True)
-                else:
-                    save_note(int(jahr), fach, zeitpunkt, note)
-                    st.session_state.save_msg = "✔ Gespeichert"
-                    st.rerun()
+
+        # Jahr validieren
+        jahr_valid = jahr_raw.isdigit() and len(jahr_raw) == 4
+        if not jahr_valid and jahr_raw != "":
+            st.markdown('<div class="warning-box">Bitte ein gültiges 4-stelliges Jahr eingeben.</div>', unsafe_allow_html=True)
+
+        st.markdown("<div style='height:1.2rem'></div>", unsafe_allow_html=True)
+        if st.button("Speichern", key="save_btn"):
+            if not fach:
+                st.markdown('<div class="warning-box">Bitte ein Fach eingeben.</div>', unsafe_allow_html=True)
+            elif not jahr_valid:
+                st.markdown('<div class="warning-box">Bitte ein gültiges Jahr eingeben (z.B. 2025).</div>', unsafe_allow_html=True)
+            else:
+                save_note(int(jahr_raw), fach, zeitpunkt, note)
+                st.session_state.save_msg = "✔ Note gespeichert"
+                st.session_state.save_msg_time = time.time()
+                st.rerun()
 
     with col_note:
         klasse = note_klasse(note)
-        label = "Sehr gut · Gut" if note <= 2 else ("Befriedigend · Ausreichend" if note <= 4 else "Mangelhaft · Ungenügend")
+        label = note_label(note)
         st.markdown(f"""
         <div class="note-display" style="margin-top:2rem">
             <div style="font-size:10px;color:#5e5a6b;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.8rem">Gewählte Note</div>
             <div class="note-big {klasse}">{note:.2f}</div>
-            <div style="margin-top:0.8rem;font-size:11px;color:#5e5a6b">{label}</div>
+            <div style="margin-top:0.8rem;font-size:13px;color:#9a96a8;font-family:'Syne',sans-serif;font-weight:600">{label}</div>
         </div>
         """, unsafe_allow_html=True)
 
