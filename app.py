@@ -16,10 +16,8 @@ st.set_page_config(
 # ─── STATE ───
 if "df" not in st.session_state:
     st.session_state.df = pd.DataFrame(columns=["Jahr", "Schuljahr", "Fach", "Zeitpunkt", "Note"])
-if "save_msg" not in st.session_state:
-    st.session_state.save_msg = None
-if "save_msg_time" not in st.session_state:
-    st.session_state.save_msg_time = None
+if "save_time" not in st.session_state:
+    st.session_state.save_time = None
 
 zeit_map = {"NSB1": 1, "HJ": 2, "NSB2": 3, "Z": 4}
 
@@ -98,7 +96,21 @@ div[data-testid="stStatusWidget"],
     border-bottom: none !important;
 }
 
-/* ── Sidebar – fixe Breite, kein Resize, kein Overflow ── */
+/* ── Sidebar Toggle Button – fixe Position, kein Springen ── */
+button[kind="header"],
+[data-testid="collapsedControl"] {
+    top: 14px !important;
+    left: 16px !important;
+    position: fixed !important;
+    background: transparent !important;
+    border: none !important;
+}
+button[kind="header"]:hover,
+[data-testid="collapsedControl"]:hover {
+    color: #c8f060 !important;
+}
+
+/* ── Sidebar – fixe Breite, kein Resize ── */
 section[data-testid="stSidebar"] {
     background: #14131a;
     border-right: 1px solid #26242e;
@@ -120,15 +132,11 @@ div[role="separator"][aria-orientation="vertical"] {
     pointer-events: none !important;
     width: 0 !important;
 }
-section[data-testid="stSidebar"] * {
-    cursor: default !important;
-}
+section[data-testid="stSidebar"] * { cursor: default !important; }
 section[data-testid="stSidebar"] label,
 section[data-testid="stSidebar"] a,
 section[data-testid="stSidebar"] button,
-section[data-testid="stSidebar"] .stRadio label {
-    cursor: pointer !important;
-}
+section[data-testid="stSidebar"] .stRadio label { cursor: pointer !important; }
 
 /* ── Radio nav ── */
 section[data-testid="stSidebar"] .stRadio > div { gap: 0.1rem !important; }
@@ -156,22 +164,20 @@ section[data-testid="stSidebar"] .stRadio label:has(input:checked) {
 section[data-testid="stSidebar"] .stRadio div[data-testid="stWidgetLabel"] { display: none !important; }
 
 /* ── Global Focus Kill ── */
-*:focus,
-*:focus-visible,
-*:focus-within {
+*:focus, *:focus-visible, *:focus-within {
     outline: none !important;
     box-shadow: none !important;
 }
 
-/* ── TextInput ── */
-.stTextInput [data-baseweb="input"] {
+/* ── TextInput – Container + Feld, kein Weiß ── */
+.stTextInput > div > div {
     background-color: #1e1d2a !important;
     border: 1px solid #2e2c3e !important;
     border-radius: 8px !important;
     transition: border-color 0.15s ease !important;
     box-shadow: none !important;
 }
-.stTextInput [data-baseweb="input"]:focus-within {
+.stTextInput > div > div:focus-within {
     border-color: #c8f060 !important;
     box-shadow: none !important;
 }
@@ -182,26 +188,32 @@ section[data-testid="stSidebar"] .stRadio div[data-testid="stWidgetLabel"] { dis
     outline: none !important;
     box-shadow: none !important;
 }
-/* Invalid state: kein roter Ring */
 .stTextInput input:invalid,
 .stTextInput input:-webkit-autofill {
     outline: none !important;
     box-shadow: none !important;
     border: none !important;
 }
+/* Hover Lime-Glow */
+.stTextInput > div > div:hover {
+    box-shadow: 0 0 10px rgba(200,240,96,0.15) !important;
+}
 
-/* ── Selectbox – komplett neu, kein Weiß ── */
+/* ── Selectbox – komplett dunkel, kein Weiß ── */
 [data-baseweb="select"] > div {
     background-color: #1e1d2a !important;
     border: 1px solid #2e2c3e !important;
     border-radius: 8px !important;
     color: #e8e4dc !important;
     box-shadow: none !important;
-    transition: border-color 0.15s ease !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
 }
 [data-baseweb="select"]:focus-within > div {
     border-color: #c8f060 !important;
     box-shadow: none !important;
+}
+[data-baseweb="select"]:hover > div {
+    box-shadow: 0 0 10px rgba(200,240,96,0.15) !important;
 }
 [data-baseweb="select"] * {
     color: #e8e4dc !important;
@@ -228,7 +240,7 @@ section[data-testid="stSidebar"] .stRadio div[data-testid="stWidgetLabel"] { dis
     color: #c8f060 !important;
 }
 
-/* Dropdown popup (listbox fallback) */
+/* Dropdown popup fallback */
 div[data-baseweb="popover"] {
     background-color: rgba(28, 26, 38, 0.97) !important;
     backdrop-filter: blur(12px) !important;
@@ -286,32 +298,32 @@ ul[role="listbox"] li[aria-selected="true"] { background-color: rgba(200,240,96,
 .warning-box { background: #221a0e; border: 1px solid #5e3e14; border-radius: 7px; padding: 0.65rem 1rem; color: #d4945a; font-size: 13px; margin: 0.5rem 0; }
 .info-strip { background: rgba(26,28,38,0.8); border-left: 3px solid #4a6ea8; border-radius: 0 7px 7px 0; padding: 0.65rem 1rem; color: #9aacca; font-size: 12px; margin-bottom: 1rem; line-height: 1.6; }
 
-/* ── Speichern Button – Hero Level ── */
+/* ── Speichern Button – Hero / Overkill Level ── */
 div.stButton > button {
     background: linear-gradient(135deg, #c8f060, #9cff00) !important;
     color: #0a0f00 !important;
     border: none !important;
-    border-radius: 18px !important;
+    border-radius: 16px !important;
     font-family: 'Syne', sans-serif !important;
     font-weight: 900 !important;
-    font-size: 22px !important;
-    padding: 1.4rem 2.4rem !important;
+    font-size: 26px !important;
+    padding: 26px 0 !important;
     width: 100% !important;
     letter-spacing: 0.1em !important;
     transition: all 0.25s ease !important;
-    box-shadow: 0 0 35px rgba(200,240,96,0.55), 0 4px 24px rgba(0,0,0,0.4) !important;
+    box-shadow: 0 0 20px rgba(200,240,96,0.6) !important;
     cursor: pointer !important;
 }
 div.stButton > button:hover {
-    transform: scale(1.04) translateY(-2px);
+    transform: scale(1.05);
     box-shadow:
-        0 0 70px rgba(200,240,96,0.9),
-        0 0 120px rgba(200,240,96,0.5),
-        0 8px 32px rgba(0,0,0,0.5) !important;
+        0 0 30px #c8f060,
+        0 0 60px #c8f060,
+        0 0 90px rgba(200,240,96,0.5) !important;
 }
 div.stButton > button:active {
-    transform: scale(0.97) translateY(0);
-    box-shadow: 0 0 20px rgba(200,240,96,0.4) !important;
+    transform: scale(0.97);
+    box-shadow: 0 0 15px rgba(200,240,96,0.4) !important;
 }
 
 /* ── Delete ✕ button: override hero ── */
@@ -357,7 +369,6 @@ hr { border-color: #2a2830; }
 
 # ─── SIDEBAR ───
 with st.sidebar:
-    # Logo – overflow visible, kein Clipping
     st.markdown("""
     <div style="
         font-family:'Syne',sans-serif;
@@ -425,25 +436,22 @@ if nav == "Dashboard":
 elif nav == "Note hinzufügen":
     st.markdown('<div class="section-header">Note hinzufügen</div>', unsafe_allow_html=True)
 
+    # FIX 5: Save-Message – sauber per Timestamp, 1 Sekunde, kein Thread
     msg_placeholder = st.empty()
-
-    # Timer-System – Timestamp-basiert, kein Thread, kein Sleep
-    if st.session_state.save_msg and st.session_state.save_msg_time:
-        elapsed = time.time() - st.session_state.save_msg_time
-        if elapsed < 3.0:
+    if st.session_state.save_time is not None:
+        if time.time() - st.session_state.save_time < 1.0:
             msg_placeholder.markdown(
-                f'<div class="success-box">{st.session_state.save_msg}</div>',
+                '<div class="success-box">✔ Note gespeichert</div>',
                 unsafe_allow_html=True
             )
         else:
-            st.session_state.save_msg = None
-            st.session_state.save_msg_time = None
+            st.session_state.save_time = None
 
     col_form, col_note = st.columns([3, 2])
     with col_form:
         r1, r2 = st.columns(2)
         with r1:
-            # Jahr als TextInput – kein BaseWeb NumberInput, kein roter Ring, kein Plus/Minus
+            # Jahr als TextInput – kein BaseWeb NumberInput, kein roter Ring
             jahr_raw = st.text_input("Jahr", value="2025", max_chars=4)
         with r2:
             zeitpunkt = st.selectbox("Zeitpunkt", ["NSB1", "HJ", "NSB2", "Z"])
@@ -465,8 +473,7 @@ elif nav == "Note hinzufügen":
                 st.markdown('<div class="warning-box">Bitte ein gültiges Jahr eingeben (z.B. 2025).</div>', unsafe_allow_html=True)
             else:
                 save_note(int(jahr_raw), fach, zeitpunkt, note)
-                st.session_state.save_msg = "✔ Note gespeichert"
-                st.session_state.save_msg_time = time.time()
+                st.session_state.save_time = time.time()
                 st.rerun()
 
     with col_note:
