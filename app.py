@@ -69,7 +69,7 @@ def dark_fig(w=9, h=4.5):
         spine.set_color("#2e2c38")
     return fig, ax
 
-# ─── CSS ───
+# ─── CSS (alles außer Button) ───
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap');
@@ -77,7 +77,7 @@ st.markdown("""
 html, body, [class*="css"] { font-family: 'DM Mono', monospace; }
 h1, h2, h3 { font-family: 'Syne', sans-serif !important; }
 
-/* ── App background ── */
+/* ── App background – keine max-width, kein margin-left ── */
 html, body, .stApp {
     background: linear-gradient(160deg, #0f0f11 0%, #13111a 60%, #0f0f11 100%) !important;
     background-color: #0f0f11 !important;
@@ -96,7 +96,7 @@ div[data-testid="stStatusWidget"],
     border-bottom: none !important;
 }
 
-/* ── Sidebar Toggle Button – fixe Position, kein Springen ── */
+/* ── Sidebar Toggle Button ── */
 button[kind="header"],
 [data-testid="collapsedControl"] {
     top: 14px !important;
@@ -106,9 +106,7 @@ button[kind="header"],
     border: none !important;
 }
 button[kind="header"]:hover,
-[data-testid="collapsedControl"]:hover {
-    color: #c8f060 !important;
-}
+[data-testid="collapsedControl"]:hover { color: #c8f060 !important; }
 
 /* ── Sidebar – fixe Breite, kein Resize ── */
 section[data-testid="stSidebar"] {
@@ -119,10 +117,9 @@ section[data-testid="stSidebar"] {
     width: 320px !important;
 }
 section[data-testid="stSidebar"] > div {
-    padding: 1.2rem 1.2rem 1.2rem 1.2rem !important;
+    padding: 1.2rem !important;
     overflow: visible !important;
 }
-/* Kill all resize handles */
 div[data-testid="stSidebarResizer"],
 div[data-testid="stSidebarResizeHandle"],
 div[class*="ResizeHandle"],
@@ -134,8 +131,6 @@ div[role="separator"][aria-orientation="vertical"] {
 }
 section[data-testid="stSidebar"] * { cursor: default !important; }
 section[data-testid="stSidebar"] label,
-section[data-testid="stSidebar"] a,
-section[data-testid="stSidebar"] button,
 section[data-testid="stSidebar"] .stRadio label { cursor: pointer !important; }
 
 /* ── Radio nav ── */
@@ -169,37 +164,50 @@ section[data-testid="stSidebar"] .stRadio div[data-testid="stWidgetLabel"] { dis
     box-shadow: none !important;
 }
 
-/* ── TextInput – Container + Feld, kein Weiß ── */
-.stTextInput > div > div {
-    background-color: #1e1d2a !important;
-    border: 1px solid #2e2c3e !important;
-    border-radius: 8px !important;
-    transition: border-color 0.15s ease !important;
+/* ── Browser Validation killen ── */
+input:invalid,
+input:required,
+input:focus:invalid,
+input:-moz-ui-invalid {
     box-shadow: none !important;
-}
-.stTextInput > div > div:focus-within {
-    border-color: #c8f060 !important;
-    box-shadow: none !important;
-}
-.stTextInput input {
-    background-color: transparent !important;
-    border: none !important;
-    color: #e8e4dc !important;
     outline: none !important;
-    box-shadow: none !important;
-}
-.stTextInput input:invalid,
-.stTextInput input:-webkit-autofill {
-    outline: none !important;
-    box-shadow: none !important;
     border: none !important;
-}
-/* Hover Lime-Glow */
-.stTextInput > div > div:hover {
-    box-shadow: 0 0 10px rgba(200,240,96,0.15) !important;
 }
 
-/* ── Selectbox – komplett dunkel, kein Weiß ── */
+/* ────────────────────────────────────────
+   TextInput: kompletter Reset
+   .stTextInput > div  = äußerer Wrapper → neutral
+   .stTextInput > div > div = unser Container
+──────────────────────────────────────── */
+.stTextInput > div {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+.stTextInput > div > div {
+    background-color: #1e1d2a !important;
+    border: 2px solid #2a2d36 !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    transition: all 0.2s ease !important;
+}
+.stTextInput input {
+    background: transparent !important;
+    color: #e8e4dc !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+.stTextInput > div > div:hover {
+    border-color: #3a3f4b !important;
+    box-shadow: 0 0 6px rgba(200,240,96,0.2) !important;
+}
+.stTextInput > div > div:focus-within {
+    border: 2px solid #c8f060 !important;
+    box-shadow: 0 0 12px rgba(200,240,96,0.45) !important;
+}
+
+/* ── Selectbox – komplett dunkel ── */
 [data-baseweb="select"] > div {
     background-color: #1e1d2a !important;
     border: 1px solid #2e2c3e !important;
@@ -208,145 +216,39 @@ section[data-testid="stSidebar"] .stRadio div[data-testid="stWidgetLabel"] { dis
     box-shadow: none !important;
     transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
 }
-[data-baseweb="select"]:focus-within > div {
-    border-color: #c8f060 !important;
-    box-shadow: none !important;
-}
-[data-baseweb="select"]:hover > div {
-    box-shadow: 0 0 10px rgba(200,240,96,0.15) !important;
-}
-[data-baseweb="select"] * {
-    color: #e8e4dc !important;
-    background-color: transparent !important;
-    outline: none !important;
-    box-shadow: none !important;
-}
-[data-baseweb="menu"] {
-    background-color: #1c1b28 !important;
-    border: 1px solid #32303c !important;
-    border-radius: 8px !important;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
-}
-[data-baseweb="option"] {
-    background-color: #1c1b28 !important;
-    color: #ccc8d8 !important;
-    border-radius: 5px !important;
-    font-size: 13px !important;
-    transition: background 0.12s !important;
-}
-[data-baseweb="option"]:hover,
-[data-baseweb="option"][aria-selected="true"] {
-    background-color: rgba(200,240,96,0.09) !important;
-    color: #c8f060 !important;
-}
-
-/* Dropdown popup fallback */
-div[data-baseweb="popover"] {
-    background-color: rgba(28, 26, 38, 0.97) !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
-    border: 1px solid #32303c !important;
-    border-radius: 8px !important;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important;
-}
+[data-baseweb="select"]:focus-within > div { border-color: #c8f060 !important; box-shadow: none !important; }
+[data-baseweb="select"]:hover > div { box-shadow: 0 0 6px rgba(200,240,96,0.2) !important; }
+[data-baseweb="select"] * { color: #e8e4dc !important; background-color: transparent !important; outline: none !important; box-shadow: none !important; }
+[data-baseweb="menu"] { background-color: #1c1b28 !important; border: 1px solid #32303c !important; border-radius: 8px !important; box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important; }
+[data-baseweb="option"] { background-color: #1c1b28 !important; color: #ccc8d8 !important; border-radius: 5px !important; font-size: 13px !important; transition: background 0.12s !important; }
+[data-baseweb="option"]:hover, [data-baseweb="option"][aria-selected="true"] { background-color: rgba(200,240,96,0.09) !important; color: #c8f060 !important; }
+div[data-baseweb="popover"] { background-color: rgba(28,26,38,0.97) !important; backdrop-filter: blur(12px) !important; border: 1px solid #32303c !important; border-radius: 8px !important; box-shadow: 0 8px 32px rgba(0,0,0,0.4) !important; }
 div[data-baseweb="popover"] * { background-color: transparent !important; color: #e8e4dc !important; }
 ul[role="listbox"] { background-color: transparent !important; padding: 0.3rem !important; }
-ul[role="listbox"] li {
-    background-color: transparent !important; color: #ccc8d8 !important;
-    border-radius: 5px !important; padding: 0.4rem 0.8rem !important;
-    font-size: 13px !important; transition: background 0.12s, color 0.12s !important;
-}
+ul[role="listbox"] li { background-color: transparent !important; color: #ccc8d8 !important; border-radius: 5px !important; padding: 0.4rem 0.8rem !important; font-size: 13px !important; transition: background 0.12s, color 0.12s !important; }
 ul[role="listbox"] li:hover { background-color: rgba(200,240,96,0.08) !important; color: #c8f060 !important; }
 ul[role="listbox"] li[aria-selected="true"] { background-color: rgba(200,240,96,0.1) !important; color: #c8f060 !important; }
 
-/* ── Hide "Press Enter" hint ── */
 [data-testid="InputInstructions"] { display: none !important; }
 
 /* ── Metric cards ── */
-.metric-card {
-    background: rgba(28,27,34,0.7); border: 1px solid #282630;
-    border-radius: 10px; padding: 1.2rem 1.4rem; margin-bottom: 0.8rem; transition: border-color 0.2s;
-}
+.metric-card { background: rgba(28,27,34,0.7); border: 1px solid #282630; border-radius: 10px; padding: 1.2rem 1.4rem; margin-bottom: 0.8rem; transition: border-color 0.2s; }
 .metric-card:hover { border-color: #3a3844; }
 .metric-card .label { font-size: 10px; color: #5e5a6b; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.4rem; }
-.metric-card .value {
-    font-family: 'Syne', sans-serif; font-size: 2.1rem; font-weight: 800;
-    background: linear-gradient(135deg, #c8f060, #80e0a0);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.1;
-}
+.metric-card .value { font-family: 'Syne', sans-serif; font-size: 2.1rem; font-weight: 800; background: linear-gradient(135deg, #c8f060, #80e0a0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1.1; }
 .metric-card .sub { font-size: 11px; color: #5e5a6b; margin-top: 0.3rem; }
 
-/* ── Section header ── */
-.section-header {
-    font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800;
-    color: #e8e4dc; border-bottom: 2px solid #c8f060;
-    padding-bottom: 0.4rem; margin-bottom: 1.3rem; letter-spacing: -0.02em;
-}
+.section-header { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; color: #e8e4dc; border-bottom: 2px solid #c8f060; padding-bottom: 0.4rem; margin-bottom: 1.3rem; letter-spacing: -0.02em; }
 
-/* ── Note display ── */
-.note-display {
-    background: rgba(28,27,34,0.8); border: 1px solid #282630;
-    border-radius: 10px; padding: 1.8rem 1.5rem; text-align: center;
-}
+.note-display { background: rgba(28,27,34,0.8); border: 1px solid #282630; border-radius: 10px; padding: 1.8rem 1.5rem; text-align: center; }
 .note-big { font-family: 'Syne', sans-serif; font-size: 3.5rem; font-weight: 800; line-height: 1; }
 .note-green { background: linear-gradient(135deg, #80e080, #c8f060); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 .note-yellow { background: linear-gradient(135deg, #f0d060, #e09840); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 .note-red { background: linear-gradient(135deg, #f07878, #e04848); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 
-/* ── Messages ── */
 .success-box { background: #1a2e1c; border: 1px solid #2e5e32; border-radius: 7px; padding: 0.5rem 1rem; color: #7ed87e; font-size: 12px; margin: 0.4rem 0; }
 .warning-box { background: #221a0e; border: 1px solid #5e3e14; border-radius: 7px; padding: 0.65rem 1rem; color: #d4945a; font-size: 13px; margin: 0.5rem 0; }
 .info-strip { background: rgba(26,28,38,0.8); border-left: 3px solid #4a6ea8; border-radius: 0 7px 7px 0; padding: 0.65rem 1rem; color: #9aacca; font-size: 12px; margin-bottom: 1rem; line-height: 1.6; }
-
-/* ── Speichern Button – Hero / Overkill Level ── */
-div.stButton > button {
-    background: linear-gradient(135deg, #c8f060, #9cff00) !important;
-    color: #0a0f00 !important;
-    border: none !important;
-    border-radius: 16px !important;
-    font-family: 'Syne', sans-serif !important;
-    font-weight: 900 !important;
-    font-size: 26px !important;
-    padding: 26px 0 !important;
-    width: 100% !important;
-    letter-spacing: 0.1em !important;
-    transition: all 0.25s ease !important;
-    box-shadow: 0 0 20px rgba(200,240,96,0.6) !important;
-    cursor: pointer !important;
-}
-div.stButton > button:hover {
-    transform: scale(1.05);
-    box-shadow:
-        0 0 30px #c8f060,
-        0 0 60px #c8f060,
-        0 0 90px rgba(200,240,96,0.5) !important;
-}
-div.stButton > button:active {
-    transform: scale(0.97);
-    box-shadow: 0 0 15px rgba(200,240,96,0.4) !important;
-}
-
-/* ── Delete ✕ button: override hero ── */
-section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] .stButton > button {
-    background: transparent !important;
-    border: 1px solid #3a5e2a !important;
-    color: #80c860 !important;
-    font-size: 12px !important;
-    padding: 0.25rem 0.55rem !important;
-    width: auto !important;
-    box-shadow: none !important;
-    transform: none !important;
-    letter-spacing: 0 !important;
-    font-weight: 500 !important;
-    border-radius: 6px !important;
-}
-section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] .stButton > button:hover {
-    border-color: #c8f060 !important;
-    color: #c8f060 !important;
-    background: rgba(200,240,96,0.06) !important;
-    transform: none !important;
-    box-shadow: none !important;
-}
 
 /* ── Tabs ── */
 .stTabs [data-baseweb="tab"] { background: transparent !important; color: #6b6780 !important; font-family: 'DM Mono', monospace; font-size: 12px; transition: color 0.15s; }
@@ -354,15 +256,13 @@ section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] .stButton > b
 .stTabs [aria-selected="true"] { color: #c8f060 !important; border-bottom-color: #c8f060 !important; }
 .stTabs [data-baseweb="tab-list"] { border-bottom-color: #2a2830 !important; }
 
-/* ── DataFrame Dark Styling ── */
+/* ── DataFrame ── */
 div[data-testid="stDataFrame"] table { background-color: #1c1b22 !important; color: #e8e4dc !important; }
 div[data-testid="stDataFrame"] th { background-color: #23212c !important; color: #c8f060 !important; border-bottom: 1px solid #2e2c38 !important; }
 div[data-testid="stDataFrame"] td { background-color: #1c1b22 !important; border-bottom: 1px solid #2a2830 !important; }
 div[data-testid="stDataFrame"] tr:hover td { background-color: rgba(200,240,96,0.05) !important; }
 
-/* ── Slider ── */
 .stSlider [role="slider"] { background-color: #c8f060 !important; border-color: #c8f060 !important; }
-
 hr { border-color: #2a2830; }
 </style>
 """, unsafe_allow_html=True)
@@ -370,43 +270,26 @@ hr { border-color: #2a2830; }
 # ─── SIDEBAR ───
 with st.sidebar:
     st.markdown("""
-    <div style="
-        font-family:'Syne',sans-serif;
-        font-size:1.6rem;
-        font-weight:800;
+    <div style="font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:800;
         background:linear-gradient(135deg,#c8f060,#80e0a0);
-        -webkit-background-clip:text;
-        -webkit-text-fill-color:transparent;
-        background-clip:text;
-        padding:0.6rem 0 1.4rem;
-        letter-spacing:-0.02em;
-        white-space:nowrap;
-        overflow:visible;
-        width:100%;
-        display:block;
-    ">NotenTracker</div>
+        -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+        padding:0.6rem 0 1.4rem;letter-spacing:-0.02em;white-space:nowrap;
+        overflow:visible;width:100%;display:block;">NotenTracker</div>
     """, unsafe_allow_html=True)
 
-    nav = st.radio(
-        " ",
-        ["Dashboard", "Note hinzufügen", "Note löschen", "Analyse", "OCR Import"],
-        label_visibility="hidden"
-    )
+    nav = st.radio(" ", ["Dashboard", "Note hinzufügen", "Note löschen", "Analyse", "OCR Import"], label_visibility="hidden")
 
     st.markdown("<div style='border-top:1px solid #26242e;margin-top:1.8rem;padding-top:1rem'></div>", unsafe_allow_html=True)
-
     d_side = st.session_state.df
     total = len(d_side)
     sj_count = d_side["Schuljahr"].nunique() if total > 0 else 0
     fach_count = d_side["Fach"].nunique() if total > 0 else 0
-    st.markdown(f"""
-    <div style="font-size:13px;line-height:2;color:#5a5768">
+    st.markdown(f"""<div style="font-size:13px;line-height:2;color:#5a5768">
         <span style="color:#ccc8d8">{plural(total,'Note','Noten')}</span><br>
         <span style="color:#ccc8d8">{plural(sj_count,'Schuljahr','Schuljahre')}</span>
         <span style="color:#3a3748"> · </span>
         <span style="color:#ccc8d8">{plural(fach_count,'Fach','Fächer')}</span>
-    </div>
-    """, unsafe_allow_html=True)
+    </div>""", unsafe_allow_html=True)
 
 
 # ─── DASHBOARD ───
@@ -436,14 +319,10 @@ if nav == "Dashboard":
 elif nav == "Note hinzufügen":
     st.markdown('<div class="section-header">Note hinzufügen</div>', unsafe_allow_html=True)
 
-    # FIX 5: Save-Message – sauber per Timestamp, 1 Sekunde, kein Thread
     msg_placeholder = st.empty()
     if st.session_state.save_time is not None:
         if time.time() - st.session_state.save_time < 1.0:
-            msg_placeholder.markdown(
-                '<div class="success-box">✔ Note gespeichert</div>',
-                unsafe_allow_html=True
-            )
+            msg_placeholder.markdown('<div class="success-box">✔ Note gespeichert</div>', unsafe_allow_html=True)
         else:
             st.session_state.save_time = None
 
@@ -451,7 +330,6 @@ elif nav == "Note hinzufügen":
     with col_form:
         r1, r2 = st.columns(2)
         with r1:
-            # Jahr als TextInput – kein BaseWeb NumberInput, kein roter Ring
             jahr_raw = st.text_input("Jahr", value="2025", max_chars=4)
         with r2:
             zeitpunkt = st.selectbox("Zeitpunkt", ["NSB1", "HJ", "NSB2", "Z"])
@@ -460,12 +338,12 @@ elif nav == "Note hinzufügen":
         st.markdown("<div style='margin:0.4rem 0 0.1rem;font-size:13px;color:#7a7686'>Note</div>", unsafe_allow_html=True)
         note = st.slider("_s", min_value=1.0, max_value=6.0, value=3.0, step=0.01, format="%.2f", label_visibility="collapsed")
 
-        # Jahr validieren
         jahr_valid = jahr_raw.isdigit() and len(jahr_raw) == 4
         if not jahr_valid and jahr_raw != "":
             st.markdown('<div class="warning-box">Bitte ein gültiges 4-stelliges Jahr eingeben.</div>', unsafe_allow_html=True)
 
         st.markdown("<div style='height:1.2rem'></div>", unsafe_allow_html=True)
+        # Button direkt hier, nicht in st.columns → volle Breite
         if st.button("Speichern", key="save_btn"):
             if not fach:
                 st.markdown('<div class="warning-box">Bitte ein Fach eingeben.</div>', unsafe_allow_html=True)
@@ -537,10 +415,7 @@ elif nav == "Analyse":
                              column_config={"Durchschnitt": st.column_config.NumberColumn(format="%.2f")})
 
         with tab2:
-            st.markdown(
-                '<div class="info-strip">Zeigt, wie stark deine Noten schwanken. Niedrig = konstant, hoch = starke Unterschiede.</div>',
-                unsafe_allow_html=True
-            )
+            st.markdown('<div class="info-strip">Zeigt, wie stark deine Noten schwanken. Niedrig = konstant, hoch = starke Unterschiede.</div>', unsafe_allow_html=True)
             sj = st.selectbox("Schuljahr", schuljahre, key="t2")
             filtered = d[d["Schuljahr"] == sj]
             if filtered.empty:
@@ -679,3 +554,63 @@ elif nav == "OCR Import":
         os.unlink(tmp_path)
     else:
         st.markdown('<div class="warning-box">Bitte ein Bild hochladen um OCR zu starten.</div>', unsafe_allow_html=True)
+
+
+# ═══════════════════════════════════════════════════════════
+# BUTTON CSS – GANZ UNTEN im Script, überschreibt alles
+# ═══════════════════════════════════════════════════════════
+st.markdown("""
+<style>
+
+div.stButton > button:first-child {
+    background: linear-gradient(90deg, #c8f060, #aaff00) !important;
+    color: #050800 !important;
+    font-size: 34px !important;
+    font-weight: 900 !important;
+    padding: 36px 0 !important;
+    border-radius: 20px !important;
+    border: none !important;
+    width: 100% !important;
+    letter-spacing: 1px !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 0 25px #c8f060, 0 0 60px rgba(200,240,96,0.5) !important;
+    cursor: pointer !important;
+    font-family: 'Syne', sans-serif !important;
+}
+div.stButton > button:first-child:hover {
+    transform: scale(1.08);
+    box-shadow:
+        0 0 40px #c8f060,
+        0 0 80px #c8f060,
+        0 0 140px rgba(200,240,96,0.6) !important;
+}
+div.stButton > button:first-child:active {
+    transform: scale(0.97);
+    box-shadow: 0 0 15px rgba(200,240,96,0.4) !important;
+}
+
+/* Delete ✕ override – nach dem Hero-Block */
+section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] .stButton > button:first-child {
+    background: transparent !important;
+    border: 1px solid #3a5e2a !important;
+    color: #80c860 !important;
+    font-size: 12px !important;
+    padding: 0.25rem 0.55rem !important;
+    width: auto !important;
+    box-shadow: none !important;
+    transform: none !important;
+    letter-spacing: 0 !important;
+    font-weight: 500 !important;
+    border-radius: 6px !important;
+    font-family: 'DM Mono', monospace !important;
+}
+section[data-testid="stMain"] div[data-testid="stHorizontalBlock"] .stButton > button:first-child:hover {
+    border-color: #c8f060 !important;
+    color: #c8f060 !important;
+    background: rgba(200,240,96,0.06) !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
